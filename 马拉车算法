@@ -1,0 +1,76 @@
+class Solution {
+public:
+    string longestPalindrome(string s) {
+        //使用manacher算法解决这个问题
+        
+        //1、算法思想：
+        //用p[i]去表示当前i的回文半径
+        //核心：利用之前的结果，而不用重复匹配
+        //利用id，mx分别代表当前最大子列的中心和最右端（mx不包括在当前最大回文子列中），
+        //那么当mx>i时，就表示id为中心的最大子列的结果可以用来求p[i];
+        
+        
+        
+        //2、算法步骤：
+        //（1）初始化辅助数列t[i]，使t[i]数列的作用是在每一个s[i]之间插入一个“#”，使奇数的string和偶数的string都变为奇数
+        //（2）p[i]=(mx>i)?min(p[2*d-i],mx-i);
+        //（3）从i+p[i]开始适配，若当i+p[i]>mx,更新mx，id
+        //（4）如果最大子列和增大，更新reslen，rescenter；
+        
+        //初始化string t;
+        string t="$#";
+        for(int i=0;i<s.size();++i){
+            t+=s[i];
+            t+="#";
+        }
+        //用来记录s[i]的回文半径
+        vector<int> p(t.size(),0);
+        //初值都为零
+        int mx=0,id=0,reslen=0,resCenter=0;
+        
+        //做一个loop去求p[i],i从1开始是因为t[1]=“$”,半径不用求；
+        for(int i=1;i<t.size();i++){
+            p[i]=(mx>i)?min(p[2*id-i],mx-i):1;
+            //应当注意此时t[i+p[i]]并不一定等于t[i-p[i]];
+            while(t[i+p[i]]==t[i-p[i]])++p[i];//这里就显示可能会越界的问题，这也要求所有的字符不会等于$
+            //i+p[i]和mx指的都是最大回文子列的最右端+1，不同的是，mx以id为中心，i+p[i]则以i为中心
+            if(i+p[i]>mx){
+                id=i;
+                mx=i+p[i];
+            }
+            
+            if(p[i]>reslen){
+                reslen=p[i];
+                resCenter=i;
+            }
+        }
+        return s.substr((resCenter-reslen)/2,reslen-1);//这里reslen=0
+        //最后来讨论一下(resCenter-reslen)/2这个表达式的正确性；
+        //那么分为两种情况，resCenter为s中的元素，或者resCenter为“#”
+        //1、resCenter为s中的元素
+        //t[i]  $ # 4 # 1 # 2 # 1 # 5  # '\0'
+        //index 0 1 2 3 4 5 6 7 8 9 10 11
+        //p[i]  0 1 2 1 2 1 4 1 2 1 2  1
+        //那么应该由t[6]来寻找s[i]中回文的起始 s[1](t[4]);
+        //运用公式(resCenter-reslen)/2，(6-4)/2，这里也看，这个公式是特定的，在出加上$可以这么算，不然去掉要+1
+        
+        
+        //2、resCenter为“#”
+        //t[i]  $ # 2 # 1 # 1 # 6 # '\0'
+        //index 0 1 2 3 4 5 6 7 8 9 
+        //p[i]  0 1 2 1 2 3 2 1 2 1
+        //运用公式(resCenter-reslen)/2,(5-3)/2正确；
+        
+        //可以看到，所求最大回文子列的起始下标Si在Ti中的对应关系是2(Si+1)=Ti
+        //而看出每次最大回文子串的两端都会是“#”，并且resCenter-reslen每次都是来回文子串左边那个“#”的左边
+        //即Ti-2,那么(resCenter-reslen)/2 =（Ti-2）/2就是答案
+        
+        
+        
+        //可以得到一点启示：
+        //设数组S的下标为i，int变量len，
+        //那S[i-len]到S[i]又len+1个元素，换句话说，在i的坐标上减去len，是得不到s[i-len+1]的（s[i-len+1]到s[i]有len个单位）；
+        
+        
+    }
+};
